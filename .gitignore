@@ -1,0 +1,15 @@
+# Віртуальное окружение
+venv/
+ENV/
+env/
+
+# Кеш Python
+__pycache__/
+*.py[cod]
+
+# База даних SQLite 
+*.sqlite3
+
+# Настройки VS Code
+.vscode/
+.idea/

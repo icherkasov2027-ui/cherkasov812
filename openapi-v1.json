@@ -1,0 +1,90 @@
+swagger: '2.0'
+info:
+  title: Task Tracker / Library API
+  description: Интерактивная OpenAPI документация для API
+  version: v1
+host: 127.0.0.1:8000
+schemes:
+- http
+basePath: /api
+consumes:
+- application/json
+produces:
+- application/json
+securityDefinitions:
+  Basic:
+    type: basic
+security:
+- Basic: []
+paths:
+  /projects/:
+    get:
+      operationId: projects_list
+      summary: Отримання списку проєктів
+      description: Повертає фільтрований та відсортований список проєктів із поділом
+        на сторінки.
+      parameters:
+      - name: search
+        in: query
+        description: Пошук за назвою проєкту
+        type: string
+      - name: sort_by
+        in: query
+        description: 'Поле сортування: id, title, created_at, tasks_count'
+        type: string
+        default: id
+      - name: order
+        in: query
+        description: 'Напрям сортування: asc або desc'
+        type: string
+        default: asc
+      - name: page
+        in: query
+        description: Номер сторінки
+        type: integer
+        default: 1
+      - name: page_size
+        in: query
+        description: Кількість елементів на сторінці (макс. 100)
+        type: integer
+        default: 20
+      responses:
+        '200':
+          description: Успішний запит
+        '400':
+          description: Помилка валідації параметрів
+        '404':
+          description: Сторінку не знайдено
+      tags:
+      - projects
+    post:
+      operationId: projects_create
+      summary: Створення нового проєкту
+      description: Створює новий проєкт з перевіркою унікальності назви.
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          required:
+          - title
+          type: object
+          properties:
+            title:
+              description: Назва проєкту (макс. 200 символів)
+              type: string
+              maxLength: 200
+            description:
+              description: Опис проєкту (необов'язково)
+              type: string
+      responses:
+        '201':
+          description: Проєкт успішно створено
+        '400':
+          description: Помилка валідації даних
+        '409':
+          description: Конфлікт (проєкт із такою назвою вже існує)
+      tags:
+      - projects
+    parameters: []
+definitions: {}
