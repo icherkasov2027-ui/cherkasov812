@@ -1,12 +1,23 @@
+import uuid
+import os
 from django.db import models
+
+def project_cover_path(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    return os.path.join('uploads/covers/', filename)
+
 
 class Project(models.Model):
     title = models.CharField(max_length=255, verbose_name="Название проекта")
     description = models.TextField(blank=True, verbose_name="Описание проекта")
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    cover_image = models.ImageField(upload_to=project_cover_path, null=True, blank=True, verbose_name="Обложка проекта")
 
     def __str__(self):
         return self.title
+
 
 class Task(models.Model):
     STATUS_CHOICES = [
@@ -33,6 +44,7 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
 
 class Comment(models.Model):
     text = models.TextField(verbose_name="Текст комментария")

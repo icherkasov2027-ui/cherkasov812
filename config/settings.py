@@ -1,3 +1,4 @@
+import os
 """
 Django settings for config project.
 
@@ -158,3 +159,6 @@ MIDDLEWARE = [
     # Наш новий глобальний обробник помилок
     'library.middleware.ExceptionHandlingMiddleware',
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

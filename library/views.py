@@ -2,7 +2,8 @@ import json
 from django.db.models import Count
 from django.core.paginator import Paginator, EmptyPage
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
@@ -127,3 +128,50 @@ def get_projects(request):
             "title": project.title,
             "description": project.description
         }, status=status.HTTP_201_CREATED)
+
+
+@swagger_auto_schema(
+    method='post',
+    operation_summary="Завантаження обкладинки проєкту",
+    operation_description="Приймає файл зображення (JPEG, PNG до 5 МБ) через multipart/form-data.",
+    manual_parameters=[
+        openapi.Parameter(
+            'cover_image',
+            openapi.IN_FORM,
+            type=openapi.TYPE_FILE,
+            description='Зображення обкладинки (JPEG, PNG до 5 МБ)',
+            required=True
+        )
+    ],
+    responses={200: 'Успішно', 400: 'Помилка валідації', 404: 'Проєкт не знайдено'}
+)
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])
+def upload_project_cover(request, pk):
+    try:
+        project = Project.objects.get(pk=pk)
+    except Project.DoesNotExist:
+        return Response({"detail": "Проєкт не знайдено."}, status=status.HTTP_404_NOT_FOUND)
+
+    if 'cover_image' not in request.FILES:
+        return Response({"detail": "Файл не передано."}, status=status.HTTP_400_BAD_REQUEST)
+
+    file = request.FILES['cover_image']
+    
+    if file.size > 5 * 1024 * 1024:
+        return Response({"detail": "Розмір файлу перевищує 5 МБ."}, status=status.HTTP_400_BAD_REQUEST)
+        
+    if not file.name.lower().endswith(('.png', '.jpg', '.jpeg')):
+        return Response({"detail": "Дозволені лише формати JPEG та PNG."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if project.cover_image:
+        project.cover_image.delete(save=False)
+
+    project.cover_image = file
+    project.save()
+
+    cover_url = request.build_absolute_uri(project.cover_image.url)
+    return Response({
+        "id": project.id, 
+        "cover_image_url": cover_url
+    }, status=status.HTTP_200_OK)
